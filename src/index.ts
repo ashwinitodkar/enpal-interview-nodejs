@@ -1,29 +1,50 @@
-import express from 'express';
-import { UrlController } from './url/url.controller';
+import express, { NextFunction } from "express";
+import bodyParser from "body-parser";
+import { UrlController } from "./url/url.controller";
+import { connectDB } from "./lib/mongodb";
+import logger from './lib/logger';
+
 
 async function main() {
   const server = express();
 
   const urlController = new UrlController();
 
-  server.get('/link', (req, res) => {
-    console.log(`${req.method} ${req.url}`);
-    res.setHeader('Content-Type', 'text/plain');
-    res.send('I should return a 405 error');
+  /**
+   * Initialize post data parsing.
+   **/
+  server.use(bodyParser.json());
+
+  server.post("/link", urlController.createShortUrl);
+
+  server.get("/:slug", urlController.redirectToOriginalUrl);
+
+  
+  // Default handler for invalid API endpoint.
+  
+  server.all("*", (req, res) => {
+    logger.info(`${req.method} - ${req.url}`);
+    res.status(404).json({message: "Invalid Request" });
   });
 
-  server.post('/link', urlController.createShortUrl);
-
-  server.get('/:slug', urlController.redirectToOriginalUrl);
-
-  server.use(async (req, res) => {
-    console.log(`${req.method} ${req.url}`);
-    res.setHeader('Content-Type', 'text/plain');
-    res.send('I should return a 404 error');
+  // Default handler for uncaught exception error.
+  server.use(async (err, req, res, _next: NextFunction) => {
+    logger.error(
+      `UncaughtException is encountered 
+        In ${req.method}
+        Error= ${err},
+        Stacktrace= ${err.stack} `
+    );
+    
+    res
+      .status(500)
+      .json({ message: "Opps something went wrong, please try again."});
   });
 
-  server.listen(3000, () => {
-    console.log('Server listening on port 3000');
+  await connectDB();
+
+  await server.listen(process.env.APP_PORT, () => {
+    logger.info(`Server listening on port ${process.env.APP_PORT}`);
   });
 }
 

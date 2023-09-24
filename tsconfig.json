@@ -2,9 +2,10 @@
   "extends": "@tsconfig/node18/tsconfig.json",
   "compilerOptions": {
     "lib": ["dom", "es2021"],
-    "module": "CommonJS",
+    "module": "Node16",
     "jsx": "preserve",
-    "noEmit": true,
+    //"types": ["mongoose"],
+    // "noEmit": true,
     "resolveJsonModule": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
@@ -13,8 +14,8 @@
     "noImplicitAny": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "outDir": "./out"
+    "outDir": "./dist"
   },
   "include": ["src/**/*"],
-  "exclude": ["out", "node_modules"]
+  "exclude": ["dist", "node_modules"]
 }
