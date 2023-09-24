@@ -3,28 +3,35 @@ services:
   app:
     build:
       context: .
+      target: development
       dockerfile: Dockerfile
       args:
-        APP_ENV: dev    
+        APP_ENV: dev
     ports:
       - '3000:3000'
+    command: npm run dev
+    links:
+      - mongo
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
-    links:
-      - database
-      - redis
     depends_on:
-      - database
-      - redis
+      - 'mongo'
+    networks:
+      - backend
 
-  database:
+  mongo:
+    container_name: 'mongonode'
     image: mongo
-    volumes:
-      - './data:/data/db'
+    restart: always
+    environment:
+      MONGO_INITDB_DATABASE: local
+      MONGO_HOST_IP: mongonode
     ports:
-      - 27092:27017
-  redis:
-     image: redis
-     ports:
-       - 6391:6379
+      - '27017:27017'
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
